@@ -5,7 +5,8 @@ const usersModel=mongoose.model('usersData', new mongoose.Schema({
     email: {
         type: String, unique: true
     },
-    password: String
+    password: String,
+    github:{}
 }))
 
 module.exports=usersModel

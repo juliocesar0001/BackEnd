@@ -36,8 +36,23 @@ router.get('/chat',auth,(req,res)=>{
 
 router.get('/login',auth2,(req,res)=>{
 
+    let error=false
+    let errorDetalle=''
+    if(req.query.error){
+        error=true
+        errorDetalle=req.query.error
+    }
+    let usuarioCreado=false
+    let usuarioCreadoDetalle=''
+    if(req.query.usuarioCreado){
+        usuarioCreado=true
+        usuarioCreadoDetalle=req.query.usuarioCreado
+    }
+
     res.status(200).render('login',{
-        verLogin:true
+        verLogin:true,
+        usuarioCreado, usuarioCreadoDetalle,
+        error, errorDetalle
     })
 })
 
@@ -51,8 +66,17 @@ router.get('/products',auth, (req, res) => {
 
 router.get('/signup',auth2,(req,res)=>{
 
+        
+    let error=false
+    let errorDetalle=''
+    if(req.query.error){
+        error=true
+        errorDetalle=req.query.error
+    }
+
     res.status(200).render('signup',{
-        verLogin:true
+        verLogin:true,
+        error, errorDetalle
     })
 })
 

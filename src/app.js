@@ -4,13 +4,16 @@ const cartsRouter=require('./router/cart.router.js')
 const vistasRouter=require("./router/vistas.router.js")
 const sessionsRouter=require("./router/sessions.router.js")
 const mongoose=require("mongoose")
+const ConnectMongo=require("connect-mongo")
+const inicializaPassport=require("./config/passport.config.js")
+const passport=require("passport")
 
 const messagesModelo=require("./dao/models/chat.modelo.js")
 const realtimeprod = require("./router/realtimeproducts.router.js")
 const handlebars = require("express-handlebars")
 const s = require("socket.io").Server
 const session=require("express-session")
-const ConnectMongo=require("connect-mongo")
+
 
 const fs = require('fs')
 const productManager = require("../src/productManager")
@@ -39,6 +42,10 @@ app.use(session({
     })
 }))
 
+inicializaPassport()
+app.use(passport.initialize())
+app.use(passport.session())
+
 /*app.use(function sessionMiddleware(req, res, next) {
     res.locals.user = req.session.user || null
     next()
@@ -55,15 +62,13 @@ app.get('/chat',(req,res)=>{
     res.status(200).render('chat');
 })
 
+const serverExpress =app.listen(PORT, () => {
+    console.log(`Server corriendo en puerto ${PORT}`)
+})
 
 mongoose.connect("mongodb+srv://juliotico_01:elINFRAMUNDO@cluster0.ldltnhu.mongodb.net/?retryWrites=true&w=majority&dbName=ecommerce")
     .then(console.log("db conectada"))
     .catch(error=>console.log(error))
-
-    const serverExpress =app.listen(PORT, () => {
-        console.log(`Server corriendo en puerto ${PORT}`)
-    })
-    
 
 let mensajes=[{
     emisor:"Servidor",
