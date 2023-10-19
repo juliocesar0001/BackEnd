@@ -1,114 +1,186 @@
 const Router = require('express').Router
-const router=Router()
-const crypto=require('crypto')
-const passport=require("passport")
-const usersModel=require("../dao/models/session.model.js")
+const crypto = require('crypto')
+const router = Router()
+const usersModel = require("../dao/models/session.model.js")
+const passport = require("passport")
+const validaHash = require("../utils.js")
+const bcrypt = require("bcrypt")
 
-router.get('/errorSignup',(req,res)=>{
-    
-    res.setHeader('Content-Type','application/json');
+router.get('/errorSignup', (req, res) => {
+
+    res.setHeader('Content-Type', 'application/json');
     res.status(200).json({
-        error:'Error de registro'
+        error: 'Error de registro'
     });
 })
 
-router.get('/errorLogin',(req,res)=>{
-    
-    res.setHeader('Content-Type','application/json');
-    res.status(200).json({
-        error:'Error Login'
-    });
-})
-
-router.post('/signup',passport.authenticate("signup",{failureRedirect:"/api/sessions/errorSignup"}),async(req,res)=>{
-
-    let {name, email, password}=req.body
+router.post('/signup', async (req, res) => {
     /*
-    if(!name || !email || !password){
-        return res.status(400).send('Data incomplete')
-    }
+            if(!name || !email || !password){
+                return res.status(400).send('Data incomplete')
+            }
+        
+            let existe=await usersModel.findOne({email})
+            if(existe){
+                return res.status(400).send(`User already exist: ${email}`)
+            }
+        
+            password=crypto.createHmac('sha256','palabraSecreta').update(password).digest('base64')
+        
+            await usersModel.create({
+                name, email, password
+            })
+            */
 
-    let existe=await usersModel.findOne({email})
-    if(existe){
-        return res.status(400).send(`User already exist: ${email}`)
-    }
+    /*console.log(req.user)
 
-    password=crypto.createHmac('sha256','palabraSecreta').update(password).digest('base64')
+    res.redirect(`/login?usuarioCreado=${email}`)*/
+    const {
+        name,
+        email,
+        password
+    } = req.body
 
-    await usersModel.create({
-        name, email, password
-    })
-    */
-    console.log(req.user)
+    if (!name || !email || !password) {
 
-    res.redirect(`/login?newUser=${email}`)
-})
+        res.status(400).send("complete todos los campos")
 
-router.post('/login',passport.authenticate("login",{failureRedirect:"/api/sessions/errorLogin"}),async(req,res)=>{
+    } else {
+        const emailVerification = await usersModel.findOne({
+            email: email
+        })
 
-   /* let {email, password}=req.body
+        if (emailVerification) {
 
-    if(!email || !password) {
-       // return res.send('Data incomplete')
-       return res.redirect('/login?error=Faltan datos')
-    }
+            res.status(400).send("usuario con ese email ya existe")
 
-    password=crypto.createHmac('sha256','palabraSecreta').update(password).digest('base64')
+        } else {
 
-    let usuario=await usersModel.findOne({email, password})
+            let hash = validaHash
 
-    if(!usuario){
-        //return res.status(401).send('Email or password incorrect')
-        return res.redirect('/login?error=credenciales incorrectas')
-    }*/
-    
-    console.log(req.user)
+            const userCreate = await usersModel.create({
+                name,
+                email,
+                password: hash
+            })
 
-/*
-    if (usuario.email === "adminCoder@coder.com"){
-        req.session.usuario={
-            name: usuario.name,
-            email: usuario.email,
-            rol: "admin"
+            if (userCreate) {
+                res.status(200).redirect(`/login?usuarioCreado=${email}`)
+            } else {
+                res.status(400).send("no es posible crear este usuario")
+            }
         }
     }
-    else{
-        req.session.usuario={
-            name: usuario.name,
-            email: usuario.email,
-            rol: "user"
-        }
-    }*/
-
-    req.session.usuario=req.user
-
-    res.redirect('/products')
 })
 
-router.get('/github', passport.authenticate('github',{}),(req,res)=>{})
+router.post('/login', async (req, res) => {
+    /*if(!email || !password) {
+            // return res.send('Data incomplete')
+            return res.redirect('/login?error=Faltan datos')
+         }
+     
+         password=crypto.createHmac('sha256','palabraSecreta').update(password).digest('base64')
+     
+         let usuario=await usersModel.findOne({email, password})
+     
+         if(!usuario){
+             //return res.status(401).send('Email or password incorrect')
+             return res.redirect('/login?error=credenciales incorrectas')
+         }*/
 
-router.get('/callbackGithub',passport.authenticate('github',{failureRedirect:'/api/sessions/errorGithub'}),(req,res)=>{
-    
-    res.setHeader('Content-Type','application/json')
+    //console.log(req.user)
+
+    /*
+        if (usuario.email === "adminCoder@coder.com"){
+            req.session.usuario={
+                name: usuario.name,
+                email: usuario.email,
+                rol: "admin"
+            }
+        }
+        else{
+            req.session.usuario={
+                name: usuario.name,
+                email: usuario.email,
+                rol: "user"
+            }
+        }*/
+    /*
+            req.session.usuario=req.user
+
+            res.redirect('/products')*/
+    const {
+        email,
+        password
+    } = req.body
+
+    if (!email || !password) {
+
+        res.status(400).send("complete todos los campos")
+
+    } else {
+        if (email === "adminCoder@coder.com" && password === "adminCod3r123") {
+
+            res.status(200).redirect("/api/products")
+
+        } else {
+
+            const user = await usersModel.findOne({
+                email: email
+            })
+
+            let uncryptPassword = validaHash
+
+            if (uncryptPassword) {
+
+                req.session.nombre = user.nombre
+                req.session.email = email
+
+                console.log(req.session.nombre + req.session.email)
+                res.status(200).redirect("/api/products")
+            } else {
+                res.status(400).send("usuario no existente")
+            }
+        }
+    }
+})
+
+
+router.get('/logout', (req, res) => {
+
+    req.session.destroy(e => console.log(e))
+
+    res.redirect('/login?mensaje=logout correcto...!!!')
+
+})
+
+router.get('/errorLogin', (req, res) => {
+
+    res.setHeader('Content-Type', 'application/json');
     res.status(200).json({
-        mensaje:'Login OK',
+        error: 'Error Login'
+    })
+})
+
+
+router.get('/github', passport.authenticate('github', {}), (req, res) => {})
+
+router.get('/callbackGithub', passport.authenticate('github', {
+    failureRedirect: '/api/sessions/errorGithub'
+}), (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.status(200).json({
+        mensaje: 'Login OK',
         usuario: req.user
     })
 })
 
-router.get('/errorGithub',(req,res)=>{
-    
-    res.setHeader('Content-Type','application/json')
+router.get('/errorGithub', (req, res) => {
+
+    res.setHeader('Content-Type', 'application/json');
     res.status(200).json({
-        error:'Error en Github'
+        error: 'Error en Github'
     })
 })
 
-router.get('/logout',(req,res)=>{
-
-    req.session.destroy(e=>console.log(e))
-
-    res.redirect("/login?mensaje=logout correcto...!!!")
-})
-
-module.exports=router
+module.exports = router
