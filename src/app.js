@@ -3,11 +3,13 @@ const productsRouter = require("./router/products.router.js")
 const cartsRouter = require('./router/cart.router.js')
 const vistasRouter = require("./router/vistas.router.js")
 const sessionsRouter = require("./router/sessions.router.js")
+const cookieParser=require("cookie-parser")
 const handlebars = require("express-handlebars")
 const mongoose = require("mongoose")
 const ConnectMongo = require("connect-mongo")
 const inicializaPassport = require("./config/passport.config.js")
 const passport = require("passport")
+const config=require("./config/config.js")
 
 const messagesModelo = require("./dao/models/chat.modelo.js")
 const realtimeprod = require("./router/realtimeproducts.router.js")
@@ -19,7 +21,7 @@ const fs = require('fs')
 const productManager = require("../src/productManager")
 
 const app = express()
-const PORT = 8080
+const PORT = config.PORT
 
 const path = "../data/productos.json"
 const pproductManager = new productManager(path)
@@ -35,9 +37,10 @@ app.use(express.urlencoded({
     extended: true
 }))
 app.use(express.static(__dirname + '/public'))
+app.use(cookieParser())
 
 app.use(session({
-    secret: 'claveSecreta',
+    secret: config.SECRET,
     resave: true,
     saveUninitialized: true,
     store: ConnectMongo.create({
@@ -67,7 +70,7 @@ const serverExpress = app.listen(PORT, () => {
 
 const conectar = async () => {
     try {
-        await mongoose.connect("mongodb+srv://juliotico_01:elINFRAMUNDO@cluster0.ldltnhu.mongodb.net/?retryWrites=true&w=majority&dbName=ecommerce")
+        await mongoose.connect(config.MONGO_URL,{dbName:config.DB_NAME})
         console.log(`Conexión a DB establecida`)
     } catch (err) {
         console.log(`Error al conectarse con el servidor de BD: ${err}`)
