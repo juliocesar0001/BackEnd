@@ -1,6 +1,5 @@
 const productsService = require("../../services/products.service.js")
 
-
 async function productById( req , res ){
 
     const id = req.params.pid
@@ -14,9 +13,7 @@ async function productById( req , res ){
 
       res.status(400).send("Producto id " + id + " no encontrado")
 
-
     }
 }
-
 
 module.exports = productById

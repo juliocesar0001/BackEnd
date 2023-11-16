@@ -1,23 +1,23 @@
 const chatDao = require("../dao/chatDao.js")
 
-class chatService{
+class chatService {
 
-   constructor(dao){
-      this.dao = new dao()
+  constructor(dao) {
+    this.dao = new dao()
 
-   }
+  }
 
-   async getChat(){
+  async getChat() {
 
-     return await this.dao.getChat()
+    return await this.dao.getChat()
 
-   }
+  }
 
-   async addMessage(nuevoMensaje){
+  async addMessage(nuevoMensaje) {
 
-     return await this.dao.addMessage(nuevoMensaje)
+    return await this.dao.addMessage(nuevoMensaje)
 
-   }
+  }
 
 }
 

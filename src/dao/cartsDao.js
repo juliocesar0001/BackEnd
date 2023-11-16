@@ -1,14 +1,11 @@
 const cartsModelo = require("../dao/models/carts.modelo.js")
 
-
 class cartsMongoDao{
 
       constructor(){}
 
       async getCarts(){
-
         return await cartsModelo.find()
-
       }
 
       async create(newCart){
